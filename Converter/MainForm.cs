@@ -234,7 +234,7 @@ namespace Converter
             if (!cbxEncrypt.Checked)
                 password = null;
             SqlServerToSQLite.ConvertSqlServerToSQLiteDatabase(sqlConnString, sqlitePath, password, handler, 
-                selectionHandler, viewFailureHandler, cbxTriggers.Checked, createViews);
+                selectionHandler, viewFailureHandler, cbxTriggers.Checked, createViews,cbxTable.Checked);
         }
 
         #endregion
@@ -279,6 +279,6 @@ namespace Converter
 
         #region Private Variables
         private bool _shouldExit = false;
-        #endregion        
+        #endregion
     }
 }

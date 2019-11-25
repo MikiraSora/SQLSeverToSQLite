@@ -55,7 +55,7 @@ namespace DbAccess
             string sqlitePath, string password, SqlConversionHandler handler,
             SqlTableSelectionHandler selectionHandler,
             FailedViewDefinitionHandler viewFailureHandler,
-            bool createTriggers, bool createViews)
+            bool createTriggers, bool createViews,bool onlyMigrateTableStruct)
         {
             // Clear cancelled flag
             _cancelled = false;
@@ -65,7 +65,7 @@ namespace DbAccess
                 try
                 {
                     _isActive = true;
-                    ConvertSqlServerDatabaseToSQLiteFile(sqlServerConnString, sqlitePath, password, handler, selectionHandler, viewFailureHandler, createTriggers, createViews);
+                    ConvertSqlServerDatabaseToSQLiteFile(sqlServerConnString, sqlitePath, password, handler, selectionHandler, viewFailureHandler, createTriggers, createViews, onlyMigrateTableStruct);
                     _isActive = false;
                     handler(true, true, 100, "Finished converting database");
                 }
@@ -95,7 +95,7 @@ namespace DbAccess
             string sqlConnString, string sqlitePath, string password, SqlConversionHandler handler,
             SqlTableSelectionHandler selectionHandler,
             FailedViewDefinitionHandler viewFailureHandler,
-            bool createTriggers, bool createViews)
+            bool createTriggers, bool createViews,bool onlyMigrateTableStruct)
         {
             // Delete the target file if it exists already.
             if (File.Exists(sqlitePath))
@@ -108,7 +108,8 @@ namespace DbAccess
             CreateSQLiteDatabase(sqlitePath, ds, password, handler, viewFailureHandler, createViews);
 
             // Copy all rows from SQL Server tables to the newly created SQLite database
-            CopySqlServerRowsToSQLiteDB(sqlConnString, sqlitePath, ds.Tables, password, handler);
+            if (!onlyMigrateTableStruct)
+                CopySqlServerRowsToSQLiteDB(sqlConnString, sqlitePath, ds.Tables, password, handler);
 
             // Add triggers based on foreign key constraints
             if (createTriggers)
