@@ -11,4 +11,7 @@
     <FallbackCulture>en-US</FallbackCulture>
     <VerifyUploadedFiles>false</VerifyUploadedFiles>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <StartArguments>-sqlConnString="Data Source=%28localdb%29\mssqllocaldb%3bInitial Catalog=Wbooru.Persistence.LocalDBContext%3bIntegrated Security=True" -sqlitePath="mysqlite.db" -allTable -c</StartArguments>
+  </PropertyGroup>
 </Project>

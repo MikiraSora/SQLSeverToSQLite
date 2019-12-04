@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 using DbAccess;
 using log4net;
@@ -13,6 +16,11 @@ namespace Converter
 {
     static class Program
     {
+        [DllImport("user32.dll", EntryPoint = "ShowWindow", SetLastError = true)]
+        static extern bool ShowWindow(IntPtr hWnd, uint nCmdShow);
+        [DllImport("user32.dll", EntryPoint = "FindWindow", SetLastError = true)]
+        public static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+
         /// <summary>
         /// The main entry point for the application.
         /// </summary>
@@ -26,12 +34,23 @@ namespace Converter
 
             if (!CommandLine.ContainSwitchOption("c"))
             {
+                HideConsoleWindow();
                 Application.Run(new MainForm());
             }
             else
             {
                 ExecuteCommand();
+
+                while (Console.ReadLine() != "exit")
+                    Thread.Sleep(100);
             }
+        }
+
+        private static void HideConsoleWindow()
+        {
+            Console.Title = "Moe2857~" + DateTime.Now.Ticks;
+            IntPtr intptr = FindWindow("ConsoleWindowClass", Console.Title);
+            ShowWindow(intptr, 0);
         }
 
         private static void ExecuteCommand()
@@ -44,6 +63,8 @@ namespace Converter
             var selected_tables = CommandLine.ValueOptions.Where(x => x.Name == "table").Select(x => x.Value.Trim()).ToArray();
 
             CommandLine.TryGetOptionValue("password", out string password);
+
+            var allTable = CommandLine.ContainSwitchOption("allTable");
 
             if (!CommandLine.TryGetOptionValue("createTriggers", out bool createTriggers))
                 createTriggers = false;
@@ -59,12 +80,13 @@ namespace Converter
                 if (done)
                 {
                     Console.WriteLine("Done.");
+                    Environment.Exit(0);
                 }
                 else
                 {
                     Console.WriteLine($"{percent} : {msg}");
                 }
-            }, schema => schema.Where(x => selected_tables.Any(y => y.Equals(x.TableName, StringComparison.InvariantCultureIgnoreCase))).ToList()
+            }, schema => schema.Where(x => selected_tables.Any(y => allTable || y.Equals(x.TableName, StringComparison.InvariantCultureIgnoreCase))).ToList()
             , null, createTriggers, createViews, onlyMigrateTableStruct
             );
         }

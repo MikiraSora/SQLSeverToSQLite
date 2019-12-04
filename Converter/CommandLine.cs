@@ -4,6 +4,7 @@ using System.Text;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.ComponentModel;
+using System.Diagnostics;
 
 namespace Converter
 {
@@ -29,20 +30,17 @@ namespace Converter
 
         static CommandLine()
         {
-            var command_line = string.Join(" ", Environment.GetCommandLineArgs()) + " ";
+            var array = Environment.GetCommandLineArgs();
 
-            cached_options = Regex.Matches(command_line, @"-([a-zA-Z_]\w*)\s*(=\s*((""[(\\"")\w\s]+"")|(.+?\s)))?")
-                .OfType<Match>()
+            cached_options = array.Select(line => Regex.Match(line, @"-([a-zA-Z0-9_]\w*)(=(.+))?"))
+                .Where(x=>x.Success)
                 .Select(x =>
                 {
-                    var name = x.Groups[1].Value;
-                    var val = x.Groups[3].Value;
+                    var name = x.Groups[1].Value.Trim();
+                    var val = x.Groups[3].Value.Trim();
 
                     if (!string.IsNullOrWhiteSpace(val))
                     {
-                        val = val.FirstOrDefault() == val.LastOrDefault() && val[0] == '"' ? (val.Length >= 3 ? val.Substring(1, val.Length - 3) : string.Empty) : val;
-                        val = val.Trim();
-
                         return new ValueOption()
                         {
                             Name = name,
